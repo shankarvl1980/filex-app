@@ -46,10 +46,13 @@
   }
 
   function pickerCallback(data) {
-  try {
-    // 🔎 FULL payload from Google Picker
-    console.log("PICKER CALLBACK RAW =", JSON.stringify(data));
+  // 🔥 FIRST line – confirms callback execution
+  console.log("PICKER_ACTION=" + data.action);
 
+  // 🔎 Full payload (keep this second)
+  console.log("PICKER CALLBACK RAW =", JSON.stringify(data));
+
+  try {
     const Action = google.picker.Action;
 
     if (data.action === Action.PICKED) {
@@ -85,6 +88,7 @@
     if (window.AndroidBridge) AndroidBridge.onCancel("JS error: " + e);
   }
 }
+
 
 </script>
 </body>
