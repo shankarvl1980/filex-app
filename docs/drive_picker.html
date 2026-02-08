@@ -3,46 +3,42 @@
 <head>
   <meta charset="utf-8"/>
   <title>Drive Folder Picker</title>
-
-  <!-- IMPORTANT: ensure onApiLoad runs only after api.js loads -->
   <script src="https://apis.google.com/js/api.js?onload=onApiLoad" async defer></script>
 </head>
-
 <body>
 <script>
-  const DEVELOPER_KEY = "AIzaSyDAazPfoPYllwo8hsNWIDMB1ASGiL5X_gk";
-  const APP_ID = "603518003549"; // numeric
-  const SCOPE = ["https://www.googleapis.com/auth/drive.file"]; // token must include this scope
+  const DEVELOPER_KEY = "YOUR_API_KEY";
+  const APP_ID = "YOUR_PROJECT_NUMBER"; // numeric project number
+  const SCOPE = ["https://www.googleapis.com/auth/drive.file"];
 
   function getToken() {
     const u = new URL(window.location.href);
-    return u.searchParams.get("token"); // you must load: ...privacy.html?token=ya29....
+    return u.searchParams.get("token");
   }
 
   function onApiLoad() {
-    // picker module
     gapi.load("picker", { callback: createPicker });
   }
 
   function createPicker() {
     const token = getToken();
-
     if (!token) {
-      if (window.AndroidBridge) AndroidBridge.onCancel("Missing token in URL");
+      if (window.AndroidBridge) AndroidBridge.onCancel("Missing token");
       return;
     }
 
-    const view = new google.picker.DocsView(google.picker.ViewId.FOLDERS)
+    // ✅ Folders view that actually allows selecting folders
+    const foldersView = new google.picker.DocsView()
       .setIncludeFolders(true)
-      .setSelectFolderEnabled(true);
+      .setSelectFolderEnabled(true)
+      .setMimeTypes("application/vnd.google-apps.folder"); // force folders only
 
     const picker = new google.picker.PickerBuilder()
       .setAppId(APP_ID)
       .setDeveloperKey(DEVELOPER_KEY)
       .setOAuthToken(token)
-      // CRITICAL for WebView + restricted key: origin must match your allowed domain
-      .setOrigin(window.location.origin) // should be https://shankarvl1980.github.io
-      .addView(view)
+      .setOrigin(window.location.origin)
+      .addView(foldersView)
       .setCallback(pickerCallback)
       .build();
 
@@ -50,15 +46,25 @@
   }
 
   function pickerCallback(data) {
-    const Action = google.picker.Action;
+    try {
+      const Action = google.picker.Action;
 
-    if (data.action === Action.PICKED) {
-      const doc = data.docs && data.docs[0];
-      if (doc && window.AndroidBridge) {
-        AndroidBridge.onPickedFolder(doc.id, doc.name || doc.title || "Drive Folder");
+      if (data.action === Action.PICKED) {
+        const doc = data.docs && data.docs[0];
+        // For folders, id is the folderId
+        if (doc && doc.id) {
+          const name = doc.name || doc.title || "Drive Folder";
+          if (window.AndroidBridge && AndroidBridge.onPickedFolder) {
+            AndroidBridge.onPickedFolder(String(doc.id), String(name));
+            return;
+          }
+        }
+        if (window.AndroidBridge) AndroidBridge.onCancel("Picked but doc missing");
+      } else if (data.action === Action.CANCEL) {
+        if (window.AndroidBridge) AndroidBridge.onCancel("User cancelled");
       }
-    } else if (data.action === Action.CANCEL) {
-      if (window.AndroidBridge) AndroidBridge.onCancel("User cancelled");
+    } catch (e) {
+      if (window.AndroidBridge) AndroidBridge.onCancel("JS error: " + e);
     }
   }
 </script>
