@@ -46,27 +46,46 @@
   }
 
   function pickerCallback(data) {
-    try {
-      const Action = google.picker.Action;
+  try {
+    // 🔎 FULL payload from Google Picker
+    console.log("PICKER CALLBACK RAW =", JSON.stringify(data));
 
-      if (data.action === Action.PICKED) {
-        const doc = data.docs && data.docs[0];
-        // For folders, id is the folderId
-        if (doc && doc.id) {
-          const name = doc.name || doc.title || "Drive Folder";
-          if (window.AndroidBridge && AndroidBridge.onPickedFolder) {
-            AndroidBridge.onPickedFolder(String(doc.id), String(name));
-            return;
-          }
+    const Action = google.picker.Action;
+
+    if (data.action === Action.PICKED) {
+      console.log("PICKED docs =", JSON.stringify(data.docs));
+
+      const doc = data.docs && data.docs[0];
+      if (doc) {
+        console.log("DOC ID =", doc.id);
+        console.log("DOC NAME =", doc.name || doc.title);
+
+        if (window.AndroidBridge && AndroidBridge.onPickedFolder) {
+          AndroidBridge.onPickedFolder(
+            String(doc.id),
+            String(doc.name || doc.title || "Drive Folder")
+          );
+          return;
         }
-        if (window.AndroidBridge) AndroidBridge.onCancel("Picked but doc missing");
-      } else if (data.action === Action.CANCEL) {
-        if (window.AndroidBridge) AndroidBridge.onCancel("User cancelled");
       }
-    } catch (e) {
-      if (window.AndroidBridge) AndroidBridge.onCancel("JS error: " + e);
+
+      console.log("PICKED but doc missing or bridge missing");
+      if (window.AndroidBridge) AndroidBridge.onCancel("Picked but doc missing");
     }
+    else if (data.action === Action.CANCEL) {
+      console.log("PICKER CANCELLED");
+      if (window.AndroidBridge) AndroidBridge.onCancel("User cancelled");
+    }
+    else {
+      console.log("OTHER ACTION =", data.action);
+    }
+
+  } catch (e) {
+    console.error("PICKER CALLBACK ERROR", e);
+    if (window.AndroidBridge) AndroidBridge.onCancel("JS error: " + e);
   }
+}
+
 </script>
 </body>
 </html>
