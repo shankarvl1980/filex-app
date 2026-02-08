@@ -1,64 +1,66 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <meta charset="utf-8"/>
-    <title>Drive Folder Picker</title>
-    <script src="https://apis.google.com/js/api.js"></script>
+  <meta charset="utf-8"/>
+  <title>Drive Folder Picker</title>
+
+  <!-- IMPORTANT: ensure onApiLoad runs only after api.js loads -->
+  <script src="https://apis.google.com/js/api.js?onload=onApiLoad" async defer></script>
 </head>
+
 <body>
 <script>
-    // TODO: put your values
-    const DEVELOPER_KEY = "AIzaSyDAazPfoPYllwo8hsNWIDMB1ASGiL5X_gk";
-    const APP_ID = "603518003549"; // numeric
-    const SCOPE = ["https://www.googleapis.com/auth/drive.file"];
+  const DEVELOPER_KEY = "AIzaSyDAazPfoPYllwo8hsNWIDMB1ASGiL5X_gk";
+  const APP_ID = "603518003549"; // numeric
+  const SCOPE = ["https://www.googleapis.com/auth/drive.file"]; // token must include this scope
 
-    function getToken() {
-      const u = new URL(window.location.href);
-      return u.searchParams.get("token");
+  function getToken() {
+    const u = new URL(window.location.href);
+    return u.searchParams.get("token"); // you must load: ...privacy.html?token=ya29....
+  }
+
+  function onApiLoad() {
+    // picker module
+    gapi.load("picker", { callback: createPicker });
+  }
+
+  function createPicker() {
+    const token = getToken();
+
+    if (!token) {
+      if (window.AndroidBridge) AndroidBridge.onCancel("Missing token in URL");
+      return;
     }
 
-    function onApiLoad() {
-      gapi.load('picker', {'callback': createPicker});
-    }
+    const view = new google.picker.DocsView(google.picker.ViewId.FOLDERS)
+      .setIncludeFolders(true)
+      .setSelectFolderEnabled(true);
 
-    function createPicker() {
-      const token = "__TOKEN__";
+    const picker = new google.picker.PickerBuilder()
+      .setAppId(APP_ID)
+      .setDeveloperKey(DEVELOPER_KEY)
+      .setOAuthToken(token)
+      // CRITICAL for WebView + restricted key: origin must match your allowed domain
+      .setOrigin(window.location.origin) // should be https://shankarvl1980.github.io
+      .addView(view)
+      .setCallback(pickerCallback)
+      .build();
 
-      if (!token) {
-        if (window.AndroidBridge) AndroidBridge.onCancel();
-        return;
+    picker.setVisible(true);
+  }
+
+  function pickerCallback(data) {
+    const Action = google.picker.Action;
+
+    if (data.action === Action.PICKED) {
+      const doc = data.docs && data.docs[0];
+      if (doc && window.AndroidBridge) {
+        AndroidBridge.onPickedFolder(doc.id, doc.name || doc.title || "Drive Folder");
       }
-
-      // Folder view
-      const view = new google.picker.DocsView(google.picker.ViewId.FOLDERS)
-        .setIncludeFolders(true)
-        .setSelectFolderEnabled(true);
-
-      const picker = new google.picker.PickerBuilder()
-        .setAppId(APP_ID)
-        .setOAuthToken(token)
-        .setDeveloperKey(DEVELOPER_KEY)
-        .addView(view)
-        .setCallback(pickerCallback)
-        .build();
-
-      picker.setVisible(true);
+    } else if (data.action === Action.CANCEL) {
+      if (window.AndroidBridge) AndroidBridge.onCancel("User cancelled");
     }
-
-    function pickerCallback(data) {
-      const Action = google.picker.Action;
-      if (data.action === Action.PICKED) {
-        const doc = data.docs && data.docs[0];
-        if (doc && window.AndroidBridge) {
-          // doc.id is the Drive fileId/folderId
-          AndroidBridge.onPickedFolder(doc.id, doc.name || "Drive Folder");
-        }
-      } else if (data.action === Action.CANCEL) {
-        if (window.AndroidBridge) AndroidBridge.onCancel();
-      }
-    }
-
-    onApiLoad();
+  }
 </script>
 </body>
 </html>
