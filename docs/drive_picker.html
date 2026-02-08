@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8"/>
+    <title>Drive Folder Picker</title>
+    <script src="https://apis.google.com/js/api.js"></script>
+</head>
+<body>
+<script>
+    // TODO: put your values
+    const DEVELOPER_KEY = "AIzaSyDAazPfoPYllwo8hsNWIDMB1ASGiL5X_gk";
+    const APP_ID = "603518003549"; // numeric
+    const SCOPE = ["https://www.googleapis.com/auth/drive.file"];
+
+    function getToken() {
+      const u = new URL(window.location.href);
+      return u.searchParams.get("token");
+    }
+
+    function onApiLoad() {
+      gapi.load('picker', {'callback': createPicker});
+    }
+
+    function createPicker() {
+      const token = "__TOKEN__";
+
+      if (!token) {
+        if (window.AndroidBridge) AndroidBridge.onCancel();
+        return;
+      }
+
+      // Folder view
+      const view = new google.picker.DocsView(google.picker.ViewId.FOLDERS)
+        .setIncludeFolders(true)
+        .setSelectFolderEnabled(true);
+
+      const picker = new google.picker.PickerBuilder()
+        .setAppId(APP_ID)
+        .setOAuthToken(token)
+        .setDeveloperKey(DEVELOPER_KEY)
+        .addView(view)
+        .setCallback(pickerCallback)
+        .build();
+
+      picker.setVisible(true);
+    }
+
+    function pickerCallback(data) {
+      const Action = google.picker.Action;
+      if (data.action === Action.PICKED) {
+        const doc = data.docs && data.docs[0];
+        if (doc && window.AndroidBridge) {
+          // doc.id is the Drive fileId/folderId
+          AndroidBridge.onPickedFolder(doc.id, doc.name || "Drive Folder");
+        }
+      } else if (data.action === Action.CANCEL) {
+        if (window.AndroidBridge) AndroidBridge.onCancel();
+      }
+    }
+
+    onApiLoad();
+</script>
+</body>
+</html>
