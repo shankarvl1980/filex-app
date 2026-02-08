@@ -5,10 +5,15 @@
   <title>Drive Folder Picker</title>
   <script src="https://apis.google.com/js/api.js?onload=onApiLoad" async defer></script>
 </head>
+
 <body>
+
 <script>
-  const DEVELOPER_KEY = "AIzaSyDAazPfoPYllwo8hsNWIDMB1ASGiL5X_gk";
-    const APP_ID = "603518003549"; // numericl̥
+  // 🔥 THIS LINE GOES FIRST — proves your page is actually running
+  console.log("FILEX_PICKER_PAGE_LOADED " + window.location.href);
+
+  const DEVELOPER_KEY = "YOUR_API_KEY";
+  const APP_ID = "YOUR_PROJECT_NUMBER";
   const SCOPE = ["https://www.googleapis.com/auth/drive.file"];
 
   function getToken() {
@@ -22,16 +27,19 @@
 
   function createPicker() {
     const token = getToken();
+
+    // 🔍 Confirms token arrived
+    console.log("TOKEN_LEN=" + (token ? token.length : 0));
+
     if (!token) {
       if (window.AndroidBridge) AndroidBridge.onCancel("Missing token");
       return;
     }
 
-    // ✅ Folders view that actually allows selecting folders
     const foldersView = new google.picker.DocsView()
       .setIncludeFolders(true)
       .setSelectFolderEnabled(true)
-      .setMimeTypes("application/vnd.google-apps.folder"); // force folders only
+      .setMimeTypes("application/vnd.google-apps.folder");
 
     const picker = new google.picker.PickerBuilder()
       .setAppId(APP_ID)
@@ -46,50 +54,24 @@
   }
 
   function pickerCallback(data) {
-  // 🔥 FIRST line – confirms callback execution
-  console.log("PICKER_ACTION=" + data.action);
+    console.log("PICKER_ACTION=" + data.action);
+    console.log("PICKER_CALLBACK_RAW=" + JSON.stringify(data));
 
-  // 🔎 Full payload (keep this second)
-  console.log("PICKER CALLBACK RAW =", JSON.stringify(data));
-
-  try {
     const Action = google.picker.Action;
 
     if (data.action === Action.PICKED) {
-      console.log("PICKED docs =", JSON.stringify(data.docs));
-
       const doc = data.docs && data.docs[0];
-      if (doc) {
-        console.log("DOC ID =", doc.id);
-        console.log("DOC NAME =", doc.name || doc.title);
-
-        if (window.AndroidBridge && AndroidBridge.onPickedFolder) {
-          AndroidBridge.onPickedFolder(
-            String(doc.id),
-            String(doc.name || doc.title || "Drive Folder")
-          );
-          return;
-        }
+      if (doc && window.AndroidBridge) {
+        AndroidBridge.onPickedFolder(
+          String(doc.id),
+          String(doc.name || doc.title || "Drive Folder")
+        );
       }
-
-      console.log("PICKED but doc missing or bridge missing");
-      if (window.AndroidBridge) AndroidBridge.onCancel("Picked but doc missing");
-    }
-    else if (data.action === Action.CANCEL) {
-      console.log("PICKER CANCELLED");
+    } else if (data.action === Action.CANCEL) {
       if (window.AndroidBridge) AndroidBridge.onCancel("User cancelled");
     }
-    else {
-      console.log("OTHER ACTION =", data.action);
-    }
-
-  } catch (e) {
-    console.error("PICKER CALLBACK ERROR", e);
-    if (window.AndroidBridge) AndroidBridge.onCancel("JS error: " + e);
   }
-}
-
-
 </script>
+
 </body>
 </html>
