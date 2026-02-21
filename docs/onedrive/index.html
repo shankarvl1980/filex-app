@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>FileX Manager - OneDrive Connector</title>
+  <style>
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; margin: 40px; max-width: 900px; line-height: 1.45; }
+    header { margin-bottom: 24px; }
+    h1 { margin: 0 0 8px; }
+    .box { border: 1px solid #ddd; border-radius: 12px; padding: 16px; margin: 16px 0; }
+    a { color: #0b63ce; }
+    code { background: #f6f8fa; padding: 2px 6px; border-radius: 6px; }
+  </style>
+</head>
+<body>
+<header>
+  <h1>FileX Manager</h1>
+  <p>Cloud file explorer for Android. This page covers Microsoft OneDrive / Microsoft Graph integration used by the app.</p>
+</header>
+
+<div class="box">
+  <h2>What the app does</h2>
+  <ul>
+    <li>Connects to your Microsoft account after you sign in</li>
+    <li>Lets you browse OneDrive folders/files</li>
+    <li>Upload, download, rename, move, and delete files/folders you select</li>
+  </ul>
+</div>
+
+<div class="box">
+  <h2>Permissions requested</h2>
+  <p>The OneDrive connector uses Microsoft Graph delegated permissions:</p>
+  <ul>
+    <li><code>Files.ReadWrite</code> – manage your OneDrive files/folders (upload/download/rename/delete/move)</li>
+    <li><code>User.Read</code> – basic profile info for sign-in</li>
+    <li><code>offline_access</code> – keep you signed in (refresh tokens)</li>
+  </ul>
+  <p>All actions occur as the signed-in user and only when initiated from the app UI.</p>
+</div>
+
+<div class="box">
+  <h2>Data handling summary</h2>
+  <ul>
+    <li>We access file metadata/content only to perform the operations you request.</li>
+    <li>Access tokens are stored on the device and protected using Android security mechanisms.</li>
+    <li>We do not sell your data.</li>
+  </ul>
+</div>
+
+<div class="box">
+  <h2>Links</h2>
+  <ul>
+    <li><a href="./privacy.html">Privacy Statement</a></li>
+    <li><a href="./terms.html">Terms of Use</a></li>
+  </ul>
+</div>
+
+<div class="box">
+  <h2>Support</h2>
+  <p>Email: <a href="mailto:YOUR_SUPPORT_EMAIL">shankarlaxmeshwar@gmail.com</a></p>
+</div>
+
+</body>
+</html>
